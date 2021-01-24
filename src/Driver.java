@@ -11,7 +11,7 @@ public class Driver {
         // Read the LITTLE file
         Scanner scanner = new Scanner(System.in);
         scanner.next();
-        String inputFilename = "inputs/" + scanner.next() + ".micro";
+        String inputFilename = scanner.next() + ".micro";
         FileInputStream fileStream = new FileInputStream(new File(inputFilename));
         ANTLRInputStream input = new ANTLRInputStream(fileStream);
         Little lexer = new Little(input);

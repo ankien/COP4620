@@ -24,6 +24,8 @@ public class Driver {
         while(token.getType() != Little.EOF) {
             file.println("Token Type: " + getTokenType(token.getType()) +
                         "\nValue: " + token.getText());
+            System.out.println("Token Type: " + getTokenType(token.getType()) +
+                    "\nValue: " + token.getText());
             token = lexer.nextToken();
         }
 

@@ -9,27 +9,16 @@ public class Driver {
     public static void main(String[] args) throws Exception {
         /// Step 1: Scanner/Tokenizer/Lexer ///
         // Read the LITTLE file
-        Scanner scanner = new Scanner(System.in);
-        scanner.next();
-        String inputFilename = scanner.next() + ".micro";
-        FileInputStream fileStream = new FileInputStream(new File(inputFilename));
-        ANTLRInputStream input = new ANTLRInputStream(fileStream);
+        ANTLRInputStream input = new ANTLRInputStream(System.in);
         Little lexer = new Little(input);
-
-        // Create output file
-        PrintWriter file = new PrintWriter(inputFilename.substring(0,inputFilename.lastIndexOf('.')) + ".out");
 
         // Write to output file
         Token token = lexer.nextToken();
         while(token.getType() != Little.EOF) {
-            file.println("Token Type: " + getTokenType(token.getType()) +
-                        "\nValue: " + token.getText());
             System.out.println("Token Type: " + getTokenType(token.getType()) +
                     "\nValue: " + token.getText());
             token = lexer.nextToken();
         }
-
-        file.close();
     }
 
     // Step 1 Helper(s)

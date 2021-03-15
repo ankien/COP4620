@@ -43,7 +43,8 @@ public class SymbolTableBuilder extends LittleBaseListener {
 		varPosition = Integer.valueOf(temp.get("$"));
 		for( int i = 0; i < keys.length; i++ ) {
 			checkHashtable(temp, keys[i] );
-			temp.put( keys[i], String.valueOf(varPosition) + " STRING " + ctx.str().getText() );
+			temp.put( String.valueOf(varPosition), keys[i]);
+			temp.put( keys[i], "STRING value \"" + ctx.str().getText() + "\"" );
 			varPosition++;
 		}
 		temp.put("$", String.valueOf(varPosition));
@@ -59,7 +60,8 @@ public class SymbolTableBuilder extends LittleBaseListener {
 
 		for(int i = 0; i < keys.length; i++){
 			checkHashtable(temp, keys[i]);
-			temp.put(keys[i], String.valueOf(varPosition) + " " + ctx.var_type().getText());
+			temp.put(String.valueOf(varPosition), keys[i]);
+			temp.put(keys[i], ctx.var_type().getText());
 			varPosition++;
 		}
 
@@ -86,7 +88,8 @@ public class SymbolTableBuilder extends LittleBaseListener {
 				String type = (parameters[i].split("(?<=INT|FLOAT)"))[0]; //(this mess)[0] contains the type of parameter
  				String key = (parameters[i].split("(?<=INT|FLOAT)"))[1]; //(this mess)[1] contains the key for symtab
 				checkHashtable(func, key);
-				func.put(key, String.valueOf(varPosition) + " " + type);
+				func.put(String.valueOf(varPosition), key);
+				func.put(key, type);
 				varPosition++;
 			}
 		}
@@ -161,7 +164,16 @@ public class SymbolTableBuilder extends LittleBaseListener {
 	public void prettyPrint(){
 		for(int i = 0; i < position; i++){
 			temp = finishedSymTab.get(String.valueOf(i));
-			System.out.println(temp);
+			System.out.println("Symbol table " + temp.get("*"));
+
+			int numOfVars = Integer.valueOf(temp.get("$"));
+			String key;
+			String value;
+			for( int j = 0; j < numOfVars; j++ ){
+				key = temp.remove(String.valueOf(j));
+				value = temp.get(key);
+				System.out.println("name " + key + " type " + value);
+			}
 			System.out.println();
 		}
 	}

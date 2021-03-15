@@ -1,5 +1,6 @@
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.*;
 
 public class Driver {
     public static void main(String[] args) throws Exception {
@@ -12,49 +13,24 @@ public class Driver {
         LittleLexer lexer = new LittleLexer(input);
 
         /*Step 2: Parser*/
-
         // create a buffer of tokens pulled from the lexer
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         // create a parser that feeds off the tokens buffer
         LittleParser parser = new LittleParser(tokens);
 
-        parser.program(); // begin parsing at program rule
-        if( parser.getNumberOfSyntaxErrors() == 0 ){
-            System.out.println("Accepted");
-        } else {
-            System.out.println("Not accepted");
-        }
+        /*Step 3 Symbol Table*/
+        ParseTree tree = parser.program(); // begin parsing at program rule
 
-        /*
-        // Write to output file
-        Token token = lexer.nextToken();
-        while(token.getType() != Little.EOF) {
-            System.out.println("Token Type: " + getTokenType(token.getType()) +
-                    "\nValue: " + token.getText());
-            token = lexer.nextToken();
-        }
-         */
+        // Create a generic parse tree walker that can trigger callbacks
+        ParseTreeWalker walker = new ParseTreeWalker();
+
+        SymbolTableBuilder stb = new SymbolTableBuilder();
+
+        // Walk the tree created during the parse, trigger callbacks
+        walker.walk(stb, tree);
+
+        stb.prettyPrint();
     }
-/*
-    // Step 1 Helper(s)
-    private static String getTokenType(int tokenType) {
-        switch(tokenType) {
-            case Little.KEYWORDS:
-                return "KEYWORD";
-            case Little.IDENTIFIER:
-                return "IDENTIFIER";
-            case Little.OPERATORS:
-                return "OPERATOR";
-            case Little.INTLITERAL:
-                return "INTLITERAL";
-            case Little.FLOATLITERAL:
-                return "FLOATLITERAL";
-            case Little.STRINGLITERAL:
-                return "STRINGLITERAL";
-            default:
-                return "UNIDENTIFIED";
-        }
-    }
- */
+
 }

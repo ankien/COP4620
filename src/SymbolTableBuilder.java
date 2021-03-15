@@ -44,7 +44,7 @@ public class SymbolTableBuilder extends LittleBaseListener {
 		for( int i = 0; i < keys.length; i++ ) {
 			checkHashtable(temp, keys[i] );
 			temp.put( String.valueOf(varPosition), keys[i]);
-			temp.put( keys[i], "STRING value \"" + ctx.str().getText() + "\"" );
+			temp.put( keys[i], "STRING value " + ctx.str().getText() );
 			varPosition++;
 		}
 		temp.put("$", String.valueOf(varPosition));
@@ -126,20 +126,24 @@ public class SymbolTableBuilder extends LittleBaseListener {
 	/*Enter ELSE statement create new symtab.*/
 	@Override
 	public void enterElse_part(LittleParser.Else_partContext ctx) {
-		Hashtable<String, String> block = new Hashtable<>();
-		block.put("*", "BLOCK "+blockNum);
-		block.put("#", String.valueOf(position));
-		block.put("$", "0");
-		position++;
-		blockNum++;
-		currSymTab.push(block);
+		if( ctx.stmt_list() != null ){
+			Hashtable<String, String> block = new Hashtable<>();
+			block.put("*", "BLOCK "+blockNum);
+			block.put("#", String.valueOf(position));
+			block.put("$", "0");
+			position++;
+			blockNum++;
+			currSymTab.push(block);
+		}
 	}
 
 	/*Exit ELSE statement. Pop symtab.*/
 	@Override
 	public void exitElse_part(LittleParser.Else_partContext ctx) {
-		temp = currSymTab.pop();
-		finishedSymTab.put(temp.remove("#"), temp);
+		if( ctx.stmt_list() != null ){
+			temp = currSymTab.pop();
+			finishedSymTab.put(temp.remove("#"), temp);
+		}
 	}
 
 	//Enter while statement then create new symtab
@@ -163,6 +167,7 @@ public class SymbolTableBuilder extends LittleBaseListener {
 
 	public void prettyPrint(){
 		for(int i = 0; i < position; i++){
+			System.out.println();
 			temp = finishedSymTab.get(String.valueOf(i));
 			System.out.println("Symbol table " + temp.get("*"));
 
@@ -174,7 +179,6 @@ public class SymbolTableBuilder extends LittleBaseListener {
 				value = temp.get(key);
 				System.out.println("name " + key + " type " + value);
 			}
-			System.out.println();
 		}
 	}
 

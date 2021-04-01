@@ -25,12 +25,12 @@ public class Driver {
         // Create a generic parse tree walker that can trigger callbacks
         ParseTreeWalker walker = new ParseTreeWalker();
 
-        SymbolTableBuilder stb = new SymbolTableBuilder();
+        ASTBuilder ast = new ASTBuilder();
 
         // Walk the tree created during the parse, trigger callbacks
-        walker.walk(stb, tree);
+        walker.walk(ast, tree);
 
-        stb.prettyPrint();
+        ast.prettyPrint();
     }
 
 }

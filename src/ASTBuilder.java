@@ -178,12 +178,16 @@ public class ASTBuilder extends LittleBaseListener {
 			// create an empty stack and push the root node
 			Stack<AST> stack = new Stack<>();
 			stack.push(tree);
+			String rootValue = tree.value;
 
 			// loop till stack is empty
 			while (!stack.empty()) {
 				AST curr = stack.pop();
-				System.out.println("TEST curr.value:" + curr.value);
-				convertIRCode( IRCode, curr.value);
+
+				/*This condition is so the root node gets evaluated after while loop finishes*/
+				if(!(curr.value.equals(rootValue))){
+					convertIRCode( IRCode, curr.value);
+				}
 
 				// push the left and right child of the popped node into the stack. Left child should be popped first!
 				if (curr.right != null) {
@@ -193,6 +197,7 @@ public class ASTBuilder extends LittleBaseListener {
 					stack.push(curr.left);
 				}
 			}
+			convertIRCode( IRCode, rootValue);
 		}
 	}
 
@@ -236,13 +241,17 @@ public class ASTBuilder extends LittleBaseListener {
 				}
 				code += OP1.getCode();
 				code += OP2.getCode();
-				CodeObject strVar = new CodeObject(code, temp, type);
-				IR.push(strVar);
+				CodeObject mulExpr = new CodeObject(code, temp, type);
+				IR.push(mulExpr);
+				break;
+			case "CONSTANT":
+				CodeObject constant = new CodeObject("", arr[1], "CONSTANT");
+				IR.push(constant);
 				break;
 			case ":=":
-			//OP1 = IR.pop();
-			//System.out.println("TEST := " + s);
-			break;
+				OP1 = IR.pop();
+				System.out.println("TEST := " + OP1.getTemp());
+				break;
 			/*TODO finish this*/
 		}
 	}

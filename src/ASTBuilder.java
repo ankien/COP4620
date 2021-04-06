@@ -2,15 +2,9 @@ import java.io.*;
 import java.util.*;
 
 public class ASTBuilder extends LittleBaseListener {
-
-	/*Abstract syntax tree implementation*/
-	private class AST{
-		AST left;
-		AST right;
-		String value;
-	}
 	Hashtable<String, String> varsType; //stores declared vars and their types
 	Stack<AST> trees; //stores all ASTs (Queue = first in first out)
+	int tempIRNum = 0; //Number of temps generated for IR code representation
 
 	/*no arg constructor*/
 	public ASTBuilder(){
@@ -32,7 +26,7 @@ public class ASTBuilder extends LittleBaseListener {
 	@Override
 	public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
 		AST root = new AST(); //create new AST
-		root.value = "EQUALSIGN";
+		root.value = "=";
 		AST leftNode = new AST();
 		leftNode.value = "VARREF " + ctx.id().getText() + " " + varsType.get(ctx.id().getText());
 		root.left = leftNode;
@@ -132,15 +126,24 @@ public class ASTBuilder extends LittleBaseListener {
 		trees.push(root);
 	}
 
+	public Stack<AST> getASTs(){
+		return trees;
+	}
+
 	/*Print tree in post order*/
-	public void prettyPrint(){
+	public void printAST(){
 		for(AST tree: trees){
-			postorderIterative(tree);
+			Stack<String> output = postorderIterative(tree);
+
+			// print postorder traversal
+			while (!output.empty()) {
+				System.out.println(output.pop());
+			}
 		}
 	}
 
 	// Iterative function to perform postorder traversal on the tree
-	public static void postorderIterative(AST root)
+	public Stack<String> postorderIterative(AST root)
 	{
 		// create an empty stack and push the root node
 		Stack<AST> stack = new Stack<>();
@@ -166,10 +169,84 @@ public class ASTBuilder extends LittleBaseListener {
 			}
 		}
 
-		// print postorder traversal
-		while (!out.empty()) {
-			System.out.println(out.pop());
+		return out;
+	}
+
+	/*Generates IR Code from the AST*/
+	public void IRCodeFactory(){
+		Stack<CodeObject> IRCode = new Stack<CodeObject>();
+		for( AST tree: trees ){
+			// create an empty stack and push the root node
+			Stack<AST> stack = new Stack<>();
+			stack.push(tree);
+
+			// loop till stack is empty
+			while (!stack.empty()) {
+				AST curr = stack.pop();
+				convertIRCode( IRCode, curr.value);
+
+				// push the left and right child of the popped node into the stack
+				if (curr.left != null) {
+					stack.push(curr.left);
+				}
+				if (curr.right != null) {
+					stack.push(curr.right);
+				}
+			}
 		}
 	}
 
+	public void convertIRCode( Stack<CodeObject> IR, String s ){
+		String[] arr = s.split(" ");
+		System.out.println("TEST:" + arr[0]);
+		String code, temp, type;
+		CodeObject OP1, OP2;
+
+		switch(arr[0]){
+			case "VARREF":
+				CodeObject var = new CodeObject("", arr[1], arr[2] );
+				IR.push(var);
+				break;
+			case "ADDOP":
+				OP1 = IR.pop();
+				OP2 = IR.pop();
+				temp = generateTemp();
+				type = OP1.getType();
+				if(arr[1] == "+"){
+					code = "\n" + "ADD"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
+				} else if( arr[1] == "-"){
+					code = "\n" + "SUB"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
+				}
+				code += OP1.getCode();
+				code += OP2.getCode();
+				CodeObject addExpr = new CodeObject(code, temp, type);
+				IR.push(addExpr);
+				break;
+			case "MULOP":
+				OP1 = IR.pop();
+				OP2 = IR.pop();
+				temp = generateTemp();
+				type = OP1.getType();
+				if(arr[1] == "*"){
+					code = "\n" + "MULT"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
+				} else if( arr[1] == "/"){
+					code = "\n" + "DIV"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
+				}
+				code += OP1.getCode();
+				code += OP2.getCode();
+				CodeObject strVar = new CodeObject(code, temp, type);
+				IR.push(strVar);
+				break;
+			case "=":
+			OP1 = IR.pop();
+
+			/*TODO finish this*/
+		}
+	}
+
+	/*Generates temp for IR Code representation*/
+	public String generateTemp(){
+		tempIRNum++;
+		return "T" + tempIRNum;
+	}
 }

@@ -30,7 +30,10 @@ public class Driver {
         // Walk the tree created during the parse, trigger callbacks
         walker.walk(ast, tree);
 
-        ast.prettyPrint();
+        //Generate IR Code after performing walk
+        ast.IRCodeFactory();
+        //ast.printAST();
+
     }
 
 }

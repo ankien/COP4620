@@ -26,7 +26,7 @@ public class ASTBuilder extends LittleBaseListener {
 	@Override
 	public void enterAssign_expr(LittleParser.Assign_exprContext ctx) {
 		AST root = new AST(); //create new AST
-		root.value = "=";
+		root.value = ":=";
 		AST leftNode = new AST();
 		leftNode.value = "VARREF " + ctx.id().getText() + " " + varsType.get(ctx.id().getText());
 		root.left = leftNode;
@@ -159,13 +159,12 @@ public class ASTBuilder extends LittleBaseListener {
 			AST curr = stack.pop();
 			out.push(curr.value);
 
-			// push the left and right child of the popped node into the stack
-			if (curr.left != null) {
-				stack.push(curr.left);
-			}
-
+			// push the left and right child of the popped node into the stack. Left child should be popped first
 			if (curr.right != null) {
 				stack.push(curr.right);
+			}
+			if (curr.left != null) {
+				stack.push(curr.left);
 			}
 		}
 
@@ -183,14 +182,15 @@ public class ASTBuilder extends LittleBaseListener {
 			// loop till stack is empty
 			while (!stack.empty()) {
 				AST curr = stack.pop();
+				System.out.println("TEST curr.value:" + curr.value);
 				convertIRCode( IRCode, curr.value);
 
-				// push the left and right child of the popped node into the stack
-				if (curr.left != null) {
-					stack.push(curr.left);
-				}
+				// push the left and right child of the popped node into the stack. Left child should be popped first!
 				if (curr.right != null) {
 					stack.push(curr.right);
+				}
+				if (curr.left != null) {
+					stack.push(curr.left);
 				}
 			}
 		}
@@ -198,9 +198,11 @@ public class ASTBuilder extends LittleBaseListener {
 
 	public void convertIRCode( Stack<CodeObject> IR, String s ){
 		String[] arr = s.split(" ");
-		System.out.println("TEST:" + arr[0]);
-		String code, temp, type;
-		CodeObject OP1, OP2;
+		String code = "";
+		String temp = "";
+		String type = "";
+		CodeObject OP1;
+		CodeObject OP2;
 
 		switch(arr[0]){
 			case "VARREF":
@@ -212,9 +214,9 @@ public class ASTBuilder extends LittleBaseListener {
 				OP2 = IR.pop();
 				temp = generateTemp();
 				type = OP1.getType();
-				if(arr[1] == "+"){
+				if(arr[1].equals("+")){
 					code = "\n" + "ADD"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
-				} else if( arr[1] == "-"){
+				} else if( arr[1].equals("-")){
 					code = "\n" + "SUB"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
 				}
 				code += OP1.getCode();
@@ -227,9 +229,9 @@ public class ASTBuilder extends LittleBaseListener {
 				OP2 = IR.pop();
 				temp = generateTemp();
 				type = OP1.getType();
-				if(arr[1] == "*"){
+				if(arr[1].equals("*")){
 					code = "\n" + "MULT"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
-				} else if( arr[1] == "/"){
+				} else if( arr[1].equals("/")){
 					code = "\n" + "DIV"+ type.charAt(0) + OP1.getTemp() + " " + OP2.getTemp() + " " + temp;
 				}
 				code += OP1.getCode();
@@ -237,9 +239,10 @@ public class ASTBuilder extends LittleBaseListener {
 				CodeObject strVar = new CodeObject(code, temp, type);
 				IR.push(strVar);
 				break;
-			case "=":
-			OP1 = IR.pop();
-
+			case ":=":
+			//OP1 = IR.pop();
+			//System.out.println("TEST := " + s);
+			break;
 			/*TODO finish this*/
 		}
 	}

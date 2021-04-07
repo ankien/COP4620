@@ -77,6 +77,7 @@ public class ASTBuilder extends LittleBaseListener {
 	public void enterString_decl(LittleParser.String_declContext ctx) {
 		AST root = new AST();
 		root.value = "STRING " + ctx.id().getText() + " " + ctx.str().getText();
+		varsType.put(ctx.id().getText(), "STRING");
 		trees.push(root);
 	}
 
@@ -121,14 +122,14 @@ public class ASTBuilder extends LittleBaseListener {
 	@Override
 	public void enterRead_stmt(LittleParser.Read_stmtContext ctx) {
 		AST root = new AST();
-		root.value = "READ " + (ctx.id_list().getText()).replace(",", " ");
+		root.value = "READ " + (ctx.id_list().getText());
 		trees.push(root);
 	}
 
 	@Override
 	public void enterWrite_stmt(LittleParser.Write_stmtContext ctx) {
 		AST root = new AST();
-		root.value = "WRITE " + (ctx.id_list().getText()).replace(",", " ");
+		root.value = "WRITE " + (ctx.id_list().getText());
 		trees.push(root);
 	}
 
@@ -206,6 +207,7 @@ public class ASTBuilder extends LittleBaseListener {
 
 	/*Generates IR Code from the AST*/
 	public void IRCodeFactory(){
+		IRCode.push(new CodeObject(";IR code\n;LABEL main\n;LINK", "", ""));
 		for( AST tree: trees ){
 			Stack<AST> S = new Stack<AST>();
 
@@ -259,7 +261,10 @@ public class ASTBuilder extends LittleBaseListener {
 				prev = current;
 			}
 		}
-		System.out.println("TEST"+IRCode.toString());
+		IRCode.push(new CodeObject("\n;RET\n;tiny code\n", "", ""));
+		for( CodeObject object: IRCode){
+			System.out.print(object.toString());
+		}
 	}
 
 	public void convertIRCode( String s ){
@@ -268,6 +273,7 @@ public class ASTBuilder extends LittleBaseListener {
 		String code = "";
 		String temp = "";
 		String type = "";
+		String[] allVars; //store all vars in READ and WRITE statements
 		CodeObject rightSide;
 		CodeObject leftSide;
 
@@ -365,6 +371,24 @@ public class ASTBuilder extends LittleBaseListener {
 				code += "\n;STORE" + rightSide.getType().charAt(0) + " " + rightSide.getTemp() + " " + leftSide.getTemp();
 				CodeObject simpleAssignEquation = new CodeObject(code, "", "");
 				IRCode.push(simpleAssignEquation);
+				break;
+			case "READ":
+				allVars = arr[1].split(",");
+				code = "";
+				for(String readVar: allVars){
+					code += "\n;READ" + varsType.get(readVar).charAt(0) + " " + readVar;
+				}
+				CodeObject readObj = new CodeObject(code, "", "");
+				IRCode.push(readObj);
+				break;
+			case "WRITE":
+				allVars = arr[1].split(","); 
+				code = "";
+				for( String writeVar: allVars){
+					code += "\n;WRITE" + varsType.get(writeVar).charAt(0) + " " + writeVar;
+				}
+				CodeObject writeObj = new CodeObject(code, "", "");
+				IRCode.push(writeObj);
 				break;
 		}
 	}

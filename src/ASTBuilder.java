@@ -393,6 +393,17 @@ public class ASTBuilder extends LittleBaseListener {
 		}
 	}
 
+	public void tinyCodeFactory( ){
+		Stack<String> tinyCode = new Stack<>();
+		for( CodeObject object: IRCode){
+			IRtoTinyCode(object.toString());
+		}
+	}
+
+	public void IRtoTinyCode(String s){
+
+	}
+
 	/*Generates temp for IR Code representation*/
 	public String generateTemp(){
 		tempIRNum++;

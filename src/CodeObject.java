@@ -1,7 +1,7 @@
 public class CodeObject {
-    private String code;
-    private String temp;
-    private String type;
+    String code;
+    String temp;
+    String type;
 
     public CodeObject(){
 
@@ -23,6 +23,14 @@ public class CodeObject {
 
     public String getType(){
         return this.type;
+    }
+
+    @Override
+    public String toString(){
+        if(this.code.equals("")){
+            return this.temp;
+        }
+        return this.code;
     }
 
 }

@@ -7,6 +7,7 @@ public class ASTBuilder extends LittleBaseListener {
 	Hashtable<String, String> strValue; //stores value of string variable
 	Stack<AST> trees; //stores all ASTs (Queue = first in first out)
 	Stack<CodeObject> IRCode;
+	Stack<String> tinyCode;
 	int tempIRNum = 0; //Number of temps generated for IR code representation
 	int varCount = 0; //Keeps order of variable declarations
 
@@ -17,6 +18,7 @@ public class ASTBuilder extends LittleBaseListener {
 		strValue = new Hashtable<>();
 		trees = new Stack<>();
 		IRCode = new Stack<CodeObject>();
+		tinyCode = new Stack<>();
 	}
 
 	/*Store variables' that are FLOAT or INT*/
@@ -403,7 +405,7 @@ public class ASTBuilder extends LittleBaseListener {
 	}
 
 	public void tinyCodeFactory( ){
-		Stack<String> tinyCode = new Stack<>();
+		tempIRNum = -1; //keeps track of registers
 		for(int i = 0; i < varCount; i++){
 			String type = varsType.get(varsOrder.get(i));
 			if( type.equals("INT") || type.equals("FLOAT")){
@@ -414,12 +416,143 @@ public class ASTBuilder extends LittleBaseListener {
 			}
 		}
 		for( CodeObject object: IRCode){
-			IRtoTinyCode(object.toString());
+			String[] temp = object.toString().split("\n");
+			for( String s: temp ){
+				IRtoTinyCode(s);
+			}
+		}
+
+		tinyCode.push("sys halt");
+
+		/*Print tiny code*/
+		for( String s: tinyCode ){
+			System.out.println( s );
 		}
 	}
 
 	public void IRtoTinyCode(String s){
+		String[] arr = s.split(" ");
+		String op1;
+		String op2;
+		String register;
+		if(arr[0].startsWith(";STORE")){
+			if(arr[1].startsWith("$T")){
+				op1 = "r"+arr[1].replace("$T", "");
+			} else {
+				op1 = arr[1];
+			}
 
+			if(arr[2].startsWith("$T")){
+				op2 = "r"+arr[2].replace("$T", "");
+			} else {
+				op2 = arr[2];
+			}
+			tinyCode.push("move " + op1 + " " + op2);
+		}
+		else if(arr[0].equals(";READI")){
+			tinyCode.push( "sys readi " + arr[1]);
+		}
+		else if(arr[0].equals(";READF")){
+			tinyCode.push( "sys readr " + arr[1]);
+		}
+		else if(arr[0].equals(";WRITEI")){
+			tinyCode.push( "sys writei " + arr[1]);
+		}
+		else if(arr[0].equals(";WRITEF")){
+			tinyCode.push( "sys writer " + arr[1]);
+		}
+		else if(arr[0].equals(";WRITES")){
+			tinyCode.push( "sys writes " + arr[1]);
+		}
+		else if(arr[0].equals(";MULTI")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("muli " + arr[2] + register);
+		}
+		else if(arr[0].equals(";MULTF")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("mulr " + arr[2] + register);
+		}
+		else if(arr[0].equals(";DIVI")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("divi " + arr[2] + register);
+		}
+		else if(arr[0].equals(";DIVF")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("divr " + arr[2] + register);
+		}
+		else if(arr[0].equals(";ADDI")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("addi " + arr[2] + register);
+		}
+		else if(arr[0].equals(";ADDF")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("addr " + arr[2] + register);
+		}
+		else if(arr[0].equals(";SUBI")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("subi " + arr[2] + register);
+		}
+		else if(arr[0].equals(";SUBF")){
+			register = " r" + arr[3].replace("$T", "");
+			if(arr[1].startsWith("$T")){
+				arr[1] = "r"+arr[1].replace("$T", "");
+			}
+			if(arr[2].startsWith("$T")){
+				arr[2] = "r"+arr[2].replace("$T", "");
+			}
+			tinyCode.push("move " + arr[1] + register );
+			tinyCode.push("subr " + arr[2] + register);
+		}
 	}
 
 	/*Generates temp for IR Code representation*/

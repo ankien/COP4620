@@ -36,8 +36,8 @@ public class Driver {
         //Generate IR Code after performing walk
         ast.IRCodeFactory();
 
-        
-
+        //Generate tiny code after IR Code conversion
+        ast.tinyCodeFactory();
     }
 
 }

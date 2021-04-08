@@ -3,13 +3,18 @@ import java.util.*;
 
 public class ASTBuilder extends LittleBaseListener {
 	Hashtable<String, String> varsType; //stores declared vars and their types
+	Hashtable<Integer, String> varsOrder; //stores ordered declaration of variables
+	Hashtable<String, String> strValue; //stores value of string variable
 	Stack<AST> trees; //stores all ASTs (Queue = first in first out)
 	Stack<CodeObject> IRCode;
 	int tempIRNum = 0; //Number of temps generated for IR code representation
+	int varCount = 0; //Keeps order of variable declarations
 
 	/*no arg constructor*/
 	public ASTBuilder(){
 		varsType = new Hashtable<>();
+		varsOrder = new Hashtable<>();
+		strValue = new Hashtable<>();
 		trees = new Stack<>();
 		IRCode = new Stack<CodeObject>();
 	}
@@ -21,6 +26,8 @@ public class ASTBuilder extends LittleBaseListener {
 
 		for(int i = 0; i < allVars.length; i++){
 			varsType.put(allVars[i], ctx.var_type().getText());
+			varsOrder.put(varCount, allVars[i]);
+			varCount++;
 		}
 	}
 
@@ -78,6 +85,9 @@ public class ASTBuilder extends LittleBaseListener {
 		AST root = new AST();
 		root.value = "STRING " + ctx.id().getText() + " " + ctx.str().getText();
 		varsType.put(ctx.id().getText(), "STRING");
+		varsOrder.put(varCount, ctx.id().getText());
+		strValue.put(ctx.id().getText(), ctx.str().getText());
+		varCount++;
 		trees.push(root);
 	}
 
@@ -103,7 +113,6 @@ public class ASTBuilder extends LittleBaseListener {
 			/*Expressions with parenthesis can be ignored*/
 			if( parenthesisExpr ){
 				root.right = null;
-				//System.out.println(primaryValue);
 			} else {
 				root.right = rightNode;
 			}
@@ -382,7 +391,7 @@ public class ASTBuilder extends LittleBaseListener {
 				IRCode.push(readObj);
 				break;
 			case "WRITE":
-				allVars = arr[1].split(","); 
+				allVars = arr[1].split(",");
 				code = "";
 				for( String writeVar: allVars){
 					code += "\n;WRITE" + varsType.get(writeVar).charAt(0) + " " + writeVar;
@@ -395,6 +404,15 @@ public class ASTBuilder extends LittleBaseListener {
 
 	public void tinyCodeFactory( ){
 		Stack<String> tinyCode = new Stack<>();
+		for(int i = 0; i < varCount; i++){
+			String type = varsType.get(varsOrder.get(i));
+			if( type.equals("INT") || type.equals("FLOAT")){
+				tinyCode.push("var "+ varsOrder.get(i));
+			} else if( type.equals("STRING")){
+				String stringValue = varsType.get(varsOrder.get(i));
+				tinyCode.push("str " + varsOrder.get(i) + " " + strValue.get(varsOrder.get(i)));
+			}
+		}
 		for( CodeObject object: IRCode){
 			IRtoTinyCode(object.toString());
 		}
